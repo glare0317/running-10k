@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10K 완주 플랜</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1f1c; --muted: #6b6f68; --line: #e3e1da; --soft: #f1efe9;
+    --accent: #e4572e; --accent-soft: #fbe3da; --done: #3f8f6b; --done-soft: #e1f1e8;
+    --easy: #3f8f6b; --speed: #d9822b; --long: #3b6fb6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141513; --card: #1e201d; --ink: #ecebe6; --muted: #9b9f97; --line: #30332e; --soft: #262824;
+      --accent: #ff7a50; --accent-soft: #3a241c; --done: #5fbf92; --done-soft: #1d3329;
+      --easy: #5fbf92; --speed: #f0a050; --long: #6f9be0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141513; --card: #1e201d; --ink: #ecebe6; --muted: #9b9f97; --line: #30332e; --soft: #262824;
+    --accent: #ff7a50; --accent-soft: #3a241c; --done: #5fbf92; --done-soft: #1d3329;
+    --easy: #5fbf92; --speed: #f0a050; --long: #6f9be0;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin: 2px 0 0; font-size: 15px; }
+  .race { display: flex; gap: 10px; align-items: center; }
+  .race label { font-size: 14px; color: var(--muted); }
+  input[type=date] { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+  .dday { font-weight: 800; font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+
+  /* 진행 상황 */
+  .progress { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+  .progress .item { flex: 1 1 200px; }
+  .progress .k { font-size: 14px; color: var(--muted); }
+  .progress .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .bar { height: 8px; background: var(--soft); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--done); width: 0; transition: width .3s; }
+
+  /* 오늘 */
+  .today-card { border: 2px solid var(--accent); }
+  .today-card .when { font-size: 14px; color: var(--accent); font-weight: 700; }
+  .today-card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin: 4px 0 12px; }
+  .today-card h2 { margin: 0; font-size: 22px; }
+  .bigkm { font-size: 34px; font-weight: 800; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .bigkm small { font-size: 16px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+  .today-card .restmsg { font-size: 15px; color: var(--muted); margin: 0; }
+  .donebtn { margin-top: 16px; width: 100%; font: inherit; font-weight: 700; font-size: 17px; padding: 14px; border-radius: 12px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+  .donebtn.is-done { background: var(--done-soft); color: var(--done); }
+
+  /* 단계 */
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: st; }
+  .steps li { counter-increment: st; position: relative; padding: 8px 0 8px 36px; }
+  .steps li + li { border-top: 1px dashed var(--line); }
+  .steps li::before {
+    content: counter(st); position: absolute; left: 0; top: 9px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--soft); color: var(--ink); font-size: 13px; font-weight: 700; display: grid; place-items: center;
+  }
+  .steps li.single { padding-left: 0; } .steps li.single::before { display: none; }
+  .steps b { display: block; font-size: 16px; }
+  .steps span { font-size: 14px; color: var(--muted); }
+
+  /* 주차 탭 */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+  .tabs button {
+    flex: 0 0 auto; font: inherit; font-size: 15px; padding: 8px 14px; border-radius: 99px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .tabs button.sel { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tabs button.cur:not(.sel) { border-color: var(--accent); color: var(--accent); }
+  .week-title { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .week-title h2 { margin: 0; font-size: 20px; }
+  .week-title .tot { font-size: 15px; color: var(--muted); }
+  .week-title .tot b { color: var(--ink); }
+
+  /* 하루 */
+  .day { display: grid; grid-template-columns: 52px 1fr auto 28px; gap: 12px; align-items: start; padding: 14px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .day .date { font-size: 13px; color: var(--muted); line-height: 1.3; font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .day .date b { display: block; font-size: 15px; color: var(--ink); }
+  .day .name { font-weight: 700; font-size: 17px; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .dot.easy { background: var(--easy); } .dot.speed { background: var(--speed); } .dot.long { background: var(--long); } .dot.race { background: var(--accent); }
+  .day .km { font-size: 22px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; padding-top: 0; }
+  .day .km small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 1px; }
+  .day input { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--done); cursor: pointer; }
+  .day.rest { padding: 10px 0; }
+  .day.rest .name { font-weight: 400; font-size: 15px; color: var(--muted); margin: 0; }
+  .day.rest input { width: 20px; height: 20px; }
+  .day.today { background: var(--accent-soft); margin: 0 -12px; padding-left: 12px; padding-right: 12px; border-radius: 10px; border-top-color: transparent; }
+  .day.today .date b { color: var(--accent); }
+  .day.checked:not(.rest) .name { color: var(--done); }
+  .day.checked:not(.rest) .name::after { content: "완료"; font-size: 12px; font-weight: 700; background: var(--done-soft); color: var(--done); padding: 1px 8px; border-radius: 99px; }
+  .day.missed .name::after { content: "놓침"; font-size: 12px; font-weight: 700; background: var(--accent-soft); color: var(--accent); padding: 1px 8px; border-radius: 99px; }
+  @media (max-width: 480px) {
+    .day { grid-template-columns: 44px 1fr 24px; }
+    .day .km { grid-column: 2; grid-row: 2; font-size: 18px; }
+    .day input { grid-column: 3; grid-row: 1; }
+    .bigkm { font-size: 28px; }
+  }
+
+  /* 도움말 */
+  h3.sec { font-size: 18px; margin: 32px 0 12px; }
+  .help { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .help .card { margin: 0; padding: 16px; }
+  .help h4 { margin: 0 0 6px; font-size: 16px; }
+  .help p { margin: 0; font-size: 14px; color: var(--muted); }
+  .pacebox { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; }
+  .pacebox b { font-variant-numeric: tabular-nums; }
+  .pacebox span { color: var(--muted); }
+  /* 기록 적기 */
+  .logform { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .logform label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+  .logform input[type=number], .logform input[type=text], .logform input[type=date] {
+    font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); width: 100%;
+  }
+  .logform .time { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 15px; }
+  .logform .time input { width: 64px; }
+  .logform .wide { grid-column: 1 / -1; }
+  .feel { display: flex; gap: 6px; flex-wrap: wrap; }
+  .feel button { font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  .feel button.sel { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .logpace { font-size: 15px; color: var(--muted); align-self: end; padding-bottom: 8px; }
+  .logpace b { font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .savebtn { font: inherit; font-weight: 700; font-size: 16px; padding: 12px; border-radius: 12px; border: 0; background: var(--ink); color: var(--bg); cursor: pointer; }
+  .logmsg { font-size: 14px; color: var(--done); min-height: 1.4em; margin: 8px 0 0; }
+  .logmsg.err { color: var(--accent); }
+  .logsum { font-size: 14px; color: var(--muted); margin: 20px 0 6px; }
+  .logsum b { color: var(--ink); }
+  .logitem { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .logitem .top { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .logitem .top span { font-weight: 400; color: var(--muted); font-size: 14px; margin-left: 6px; }
+  .logitem .memo { grid-column: 1; font-size: 14px; color: var(--muted); }
+  .logitem .del { grid-column: 2; grid-row: 1 / span 2; align-self: center; font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+  .logitem .del.armed { color: var(--accent); border-color: var(--accent); }
+  .logline { font-size: 13px; font-weight: 600; color: var(--done); margin-top: 4px; }
+  .golog { display: block; width: 100%; text-align: center; margin-top: 10px; font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; text-decoration: underline; cursor: pointer; }
+
+  /* 화면 탭 */
+  .nav {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+    background: var(--bg); padding-block: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .nav button {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; font-size: 18px; line-height: 1.2;
+    padding: 8px 4px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); cursor: pointer;
+  }
+  .nav button span { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .nav button:hover { background: var(--soft); }
+  .nav button[aria-selected="true"] { background: var(--card); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .pane > h3.sec:first-child { margin-top: 0; }
+
+  /* 9월 기록 */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .stats div { background: var(--soft); border-radius: 12px; padding: 12px; }
+  .stats .k { font-size: 13px; color: var(--muted); }
+  .stats .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stats .v small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+  h4.sub2 { font-size: 15px; margin: 18px 0 8px; }
+  .wk { display: grid; grid-template-columns: 76px 1fr 120px; gap: 10px; align-items: center; font-size: 14px; padding: 4px 0; font-variant-numeric: tabular-nums; }
+  .wk .track { height: 14px; background: var(--soft); border-radius: 7px; overflow: hidden; position: relative; }
+  .wk .track i { display: block; height: 100%; background: var(--long); border-radius: 7px; }
+  .wk .track i.est { background: repeating-linear-gradient(45deg, var(--long) 0 6px, transparent 6px 10px); border: 1px solid var(--long); }
+  .wk .val { color: var(--muted); } .wk .val b { color: var(--ink); }
+  .goalline { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .runs { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .runs th { text-align: left; font-size: 13px; font-weight: 500; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); }
+  .runs td { padding: 9px 4px; border-bottom: 1px solid var(--line); }
+  .runs td.r, .runs th.r { text-align: right; }
+  .runs tr.skip td { color: var(--muted); text-decoration: line-through; }
+  .runs .best { font-size: 11px; font-weight: 700; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 99px; margin-left: 4px; text-decoration: none; }
+  .insight { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  @media (max-width: 600px) { .insight { grid-template-columns: 1fr; } .wk { grid-template-columns: 64px 1fr 96px; } }
+  .insight > div { border-radius: 12px; padding: 14px 16px; }
+  .insight .good { background: var(--done-soft); } .insight .warn { background: var(--accent-soft); }
+  .insight h5 { margin: 0 0 6px; font-size: 15px; }
+  .insight ul { margin: 0; padding-left: 18px; font-size: 14px; } .insight li + li { margin-top: 4px; }
+  .note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+  .reset { margin-top: 28px; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🏃 10km 완주 플랜</h1>
+      <p class="sub">8주 동안 일주일에 3일만 달려요 · 목표 75분</p>
+    </div>
+    <div class="race">
+      <label for="raceDate">대회일</label>
+      <input type="date" id="raceDate">
+      <span class="dday" id="dday">D-?</span>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav" role="tablist" aria-label="화면 선택">
+    <button role="tab" id="tab-today" data-go="today">🏠<span>오늘</span></button>
+    <button role="tab" id="tab-plan" data-go="plan">📅<span>훈련 계획</span></button>
+    <button role="tab" id="tab-log" data-go="log">✍️<span>기록</span></button>
+    <button role="tab" id="tab-stats" data-go="stats">📊<span>분석</span></button>
+    <button role="tab" id="tab-help" data-go="help">💡<span>도움말</span></button>
+  </nav>
+
+  <div class="pane" id="pane-today" role="tabpanel">
+  <section class="card today-card" id="today"></section>
+
+  <section class="card progress">
+    <div class="item"><div class="k">달리기 완료</div><div class="v" id="pRuns">0 / 24회</div><div class="bar"><i id="pRunsBar"></i></div></div>
+    <div class="item"><div class="k">지금까지 달린 거리</div><div class="v" id="pKm">0 km</div><div class="bar"><i id="pKmBar"></i></div></div>
+  </section>
+  </div>
+
+  <div class="pane" id="pane-plan" role="tabpanel" hidden>
+  <section class="card">
+    <div class="tabs" id="tabs"></div>
+    <div id="week"></div>
+  </section>
+  <button class="reset" id="reset">체크 기록 모두 지우기</button>
+  </div>
+
+  <div class="pane" id="pane-log" role="tabpanel" hidden>
+  <h3 class="sec">✍️ 달린 날 기록 적기</h3>
+  <section class="card">
+    <div class="logform">
+      <label class="f">날짜<input type="date" id="lDate"></label>
+      <label class="f">거리 (km)<input type="number" id="lKm" min="0" step="0.01" placeholder="예: 5.2" inputmode="decimal"></label>
+      <label class="f">걸린 시간
+        <span class="time"><input type="number" id="lMin" min="0" placeholder="분" inputmode="numeric"> 분
+        <input type="number" id="lSec" min="0" max="59" placeholder="초" inputmode="numeric"> 초</span></label>
+      <div class="logpace">속도 <b id="lPace">–</b></div>
+      <div class="f wide" style="font-size:13px;color:var(--muted)">어땠나요?
+        <div class="feel" id="lFeel" style="margin-top:4px">
+          <button type="button" data-v="😊">😊 편했어요</button>
+          <button type="button" data-v="🙂">🙂 적당했어요</button>
+          <button type="button" data-v="😫">😫 힘들었어요</button>
+          <button type="button" data-v="🤕">🤕 아팠어요</button>
+        </div>
+      </div>
+      <label class="f wide">메모 (선택)<input type="text" id="lMemo" maxlength="100" placeholder="예: 한강 코스, 4km부터 종아리 당김"></label>
+      <button class="savebtn wide" id="lSave">기록 저장</button>
+    </div>
+    <p class="logmsg" id="lMsg"></p>
+    <div id="logList"></div>
+  </section>
+  </div>
+
+  <div class="pane" id="pane-stats" role="tabpanel" hidden>
+  <h3 class="sec">📊 내 러닝 기록 분석</h3>
+  <section class="card">
+    <h4 class="sub2" style="margin-top:0">10월 (10/5까지)</h4>
+    <div class="stats">
+      <div><div class="k">달린 횟수</div><div class="v">3<small>회</small></div></div>
+      <div><div class="k">총 거리</div><div class="v">13.00<small>km</small></div></div>
+      <div><div class="k">평균 속도</div><div class="v">7'25"<small>/km</small></div></div>
+      <div><div class="k">5km 최고 기록</div><div class="v">36:36<small>7'11"/km</small></div></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="runs">
+        <thead><tr><th>날짜</th><th class="r">거리</th><th class="r">속도</th><th class="r">시간</th></tr></thead>
+        <tbody>
+          <tr><td>10/5 (월)</td><td class="r">6.00km</td><td class="r">7'21"</td><td class="r">44:12</td></tr>
+          <tr><td>10/4 (일)</td><td class="r">1.89km</td><td class="r">8'16"</td><td class="r">15:41</td></tr>
+          <tr><td>10/1 (목)</td><td class="r">5.09km</td><td class="r">7'11"<span class="best">최고</span></td><td class="r">36:36</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight">
+      <div class="good">
+        <h5>🚀 9월보다 확 빨라졌어요</h5>
+        <ul>
+          <li>평균 속도가 9월 <b>7'59"</b> → 10월 <b>7'25"</b>로 34초 빨라졌어요.</li>
+          <li>10/1에 5km를 <b>36분 36초</b>(7'11")에 달렸어요. 이 기록으로 예상하면 10km는 <b>약 75분</b>이라 지금 목표가 딱 맞아요.</li>
+          <li>오늘은 6km를 7'21"로 달렸어요. 9월 6km보다 30초 가까이 빨라요.</li>
+        </ul>
+      </div>
+      <div class="warn">
+        <h5>💡 주의할 점</h5>
+        <ul>
+          <li>10/4(일)과 10/5(월) <b>이틀 연속</b> 달렸어요. 내일은 꼭 쉬세요.</li>
+          <li>오늘 6km(7'21")는 거의 대회 속도예요. 매번 이렇게 달리면 지치거나 다치기 쉬워요. "편하게 달리기" 날은 8'20"~8'50"로 달려요.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="sept">
+    <h4 class="sub2" style="margin-top:0">9월</h4>
+    <div class="stats">
+      <div><div class="k">달린 횟수</div><div class="v">9<small>회</small></div></div>
+      <div><div class="k">총 거리</div><div class="v">40.66<small>km</small></div></div>
+      <div><div class="k">평균 속도</div><div class="v">7'59"<small>/km</small></div></div>
+      <div><div class="k">가장 길게</div><div class="v">6.04<small>km</small></div></div>
+      <div><div class="k">가장 빠르게</div><div class="v">7'49"<small>/km</small></div></div>
+    </div>
+
+    <h4 class="sub2">주마다 달린 거리 (9월~10월)</h4>
+    <div id="septWeeks"></div>
+    <p class="goalline">참고: 플랜 1주차는 총 15km예요. 9월 넷째 주에 이미 넘었어요.</p>
+
+    <h4 class="sub2">달리기 기록</h4>
+    <div style="overflow-x:auto">
+      <table class="runs">
+        <thead><tr><th>날짜</th><th class="r">거리</th><th class="r">속도</th><th class="r">시간</th></tr></thead>
+        <tbody id="septRuns"></tbody>
+      </table>
+    </div>
+
+    <div class="insight">
+      <div class="good">
+        <h5>👍 잘하고 있어요</h5>
+        <ul>
+          <li>9월 후반부터 <b>일주일에 3번</b> 달리는 습관이 생겼어요.</li>
+          <li>6km를 두 번 완주했어요. 플랜 1주차의 <b>길게 6km</b>는 이미 할 수 있어요.</li>
+          <li>속도가 빨라지고 있어요. 9/21 8'27" → 9/27 <b>7'49"</b></li>
+        </ul>
+      </div>
+      <div class="warn">
+        <h5>💡 이렇게 바꿔 보세요</h5>
+        <ul>
+          <li>거의 모든 달리기를 <b>7'50"~8'00"</b>로 뛰고 있어요. "편하게 달리기" 날은 <b>8'20"~8'50"</b>로 더 천천히 달려야 빠르게 달리는 날에 힘을 쓸 수 있어요.</li>
+          <li>9/26(토)과 9/27(일)에 <b>이틀 연속</b> 6km를 달렸어요. 달리는 날 사이에는 하루 쉬세요.</li>
+          <li>9/7~13에는 한 번도 달리지 않았어요. 한 주를 빠지면 다음 주는 거리를 조금 줄여서 다시 시작하세요.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">※ 9/20 0.03km 기록은 실수로 켠 것 같아서 분석에서 뺐어요. 9월 총 9회 중 2회(합계 10.10km)는 캡처 화면에 보이지 않아서, 화면 위쪽에 있었을 9/28~30 기록으로 계산했어요.</p>
+  </section>
+  </div>
+
+  <div class="pane" id="pane-help" role="tabpanel" hidden>
+  <h3 class="sec">처음이라면 읽어 주세요</h3>
+  <section class="help">
+    <div class="card"><h4>몸 풀기 (워밍업)</h4><p>처음부터 빠르게 달리면 다치기 쉬워요. 빠르게 달리는 날에는 처음 1km를 걷는 것보다 조금 빠른 속도로 아주 천천히 뛰어요.</p></div>
+    <div class="card"><h4>마무리 (쿨다운)</h4><p>빠르게 달린 뒤 바로 멈추지 말고, 마지막 1km는 천천히 뛰거나 걸으면서 숨을 고르세요. 끝나면 종아리와 허벅지를 5분 정도 스트레칭해요.</p></div>
+    <div class="card"><h4>속도는 어떻게 확인해요?</h4><p>러닝 앱이나 워치의 "페이스"를 보면 돼요. 7'30"는 1km를 7분 30초에 달리는 속도예요. 숫자가 클수록 느린 속도예요.</p></div>
+    <div class="card"><h4>아프면 쉬세요</h4><p>통증이 있으면 그날은 쉬고, 3일 넘게 아프면 훈련을 멈추세요. 하루 이틀 빠져도 괜찮아요. 다음 날짜부터 이어서 하면 돼요.</p></div>
+  </section>
+
+  <h3 class="sec">내 속도 기준 <span style="font-size:14px;font-weight:400;color:var(--muted)">· 지금 5km를 1km에 7분 20초로 달리는 기준</span></h3>
+  <section class="card pacebox">
+    <b>8'20" ~ 8'50"</b><span>편하게 달리기 · 옆 사람과 대화할 수 있는 속도</span>
+    <b>8'30" ~ 9'00"</b><span>길게 천천히 달리기 · 가장 느리게</span>
+    <b>7'40"</b><span>조금 빠르게 쭉 달리기 · 숨이 차지만 끝까지 버틸 수 있는 속도</span>
+    <b>7'00" ~ 7'10"</b><span>빠르게 구간 · 지금 5km 속도보다 살짝 빠르게</span>
+    <b>7'30"</b><span>대회 목표 속도 · 10km를 75분에 완주</span>
+  </section>
+  </div>
+</div>
+
+<script>
+// 기준: 5km를 1km에 7분 20초. 목표 10km 75분
+const WARM = ["몸 풀기 1km", "걷는 것보다 조금 빠르게, 아주 천천히"];
+const COOL = ["마무리 1km", "몸 풀기와 같은 속도로 천천히. 걸어도 괜찮아요"];
+const easy = (km, extra) => ({ type: "easy", name: "편하게 달리기", km, steps: [
+  [`${km}km 쉬지 않고 달리기`, `1km에 8분 20초~8분 50초 · 옆 사람과 대화할 수 있는 속도`], ...(extra ? [extra] : []) ] });
+const long = (km, note) => ({ type: "long", name: "길게 천천히 달리기", km, steps: [
+  [`${km}km 달리기`, `1km에 8분 30초~9분 · 힘들면 1분 걷고 다시 뛰어도 돼요${note ? " · " + note : ""}`] ] });
+const interval = (reps, m, rest, km) => ({ type: "speed", name: "빠르게·천천히 번갈아 달리기", km, approx: true, steps: [
+  WARM, [`${m}m 빠르게 → ${rest} 천천히, ${reps}번 반복`, `빠를 때 1km에 7분~7분 10초 · 천천히 구간은 걸어도 돼요`], COOL ] });
+const tempo = (t, km) => ({ type: "speed", name: "조금 빠르게 쭉 달리기", km, steps: [
+  WARM, [`${t}km 조금 빠르게`, `1km에 7분 40초 · 숨이 차지만 끝까지 버틸 수 있는 속도`], COOL ] });
+
+const PLAN = [
+  { focus: "5km보다 조금 더 달려보기", s: [ easy(4), interval(5, 400, "2분", 5), long(6, "처음으로 5km를 넘겨요") ] },
+  { focus: "조금 빠른 속도 익히기", s: [ easy(4), tempo(2, 4), long(7) ] },
+  { focus: "거리 늘리기", s: [ easy(5), interval(4, 600, "2분", 5), long(8, "중간에 물 한 번 마시기") ] },
+  { focus: "쉬어가는 주", s: [ easy(4), easy(4), long(6, "몸 상태 점검") ] },
+  { focus: "조금 빠르게 더 길게", s: [ easy(5), tempo(3, 5), long(8, "마지막 1km만 7분 50초로") ] },
+  { focus: "버티는 힘 기르기", s: [ easy(5), interval(4, 800, "2분 30초", 6), long(9, "대회 때 신을 신발로") ] },
+  { focus: "10km 미리 달려보기", s: [ easy(5),
+      { type: "speed", name: "대회 속도 연습", km: 6, steps: [ WARM,
+        ["2km 대회 속도 → 3분 천천히 → 2km 대회 속도", "1km에 7분 30초 · 대회 날 이 느낌을 기억하세요"], COOL ] },
+      long(10, "처음으로 10km 완주! 마지막 2km는 7분 30초 도전") ] },
+  { focus: "힘 아끼기 · 대회", s: [ easy(4),
+      easy(3, ["끝나고 100m 빠르게 4번", "있는 힘의 80% 정도로. 사이사이 걸어서 숨 고르기"]),
+      { type: "race", name: "🏁 10km 대회", km: 10, steps: [
+        ["1~2km", "1km에 7분 40초 · 일부러 천천히 시작해요"],
+        ["3~8km", "1km에 7분 30초 유지"],
+        ["9~10km", "힘이 남아 있으면 조금씩 빠르게"] ] } ] }
+];
+const TOTAL_RUNS = PLAN.reduce((n, w) => n + w.s.length, 0);
+const TOTAL_KM = PLAN.reduce((n, w) => n + w.s.reduce((m, s) => m + s.km, 0), 0);
+const WD = ["일", "월", "화", "수", "목", "금", "토"];
+const KEY = "run10k-v2";
+
+function load() {
+  try {
+    const cur = JSON.parse(localStorage.getItem(KEY));
+    if (cur) return cur;
+    const old = JSON.parse(localStorage.getItem("run10k-v1"));
+    return old ? { race: old.race } : {};
+  } catch (e) { return {}; }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const state = load();
+state.done = state.done || {};
+state.logs = state.logs || [];
+if (!state.race) { const d = new Date(); d.setDate(d.getDate() + 56); state.race = d.toISOString().slice(0, 10); }
+
+const $ = id => document.getElementById(id);
+const fmtDate = d => `${d.getMonth() + 1}/${d.getDate()}`;
+const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const raceDate = () => new Date(state.race + "T00:00:00");
+function dateOf(wi, di) { const d = raceDate(); d.setDate(d.getDate() - 7 * (8 - wi) + 1 + di); return d; }
+function currentWeek() {
+  const diff = Math.floor((today() - dateOf(0, 0)) / 86400000);
+  return diff < 0 ? -1 : Math.min(7, Math.floor(diff / 7));
+}
+
+// 일주일 중 달리는 날 (0 = 주의 첫날). 각 주의 마지막 날이 대회일과 같은 요일
+function weekDays(wi) {
+  const slots = wi === 7 ? [1, 4, 6] : [1, 3, 6];
+  return [0, 1, 2, 3, 4, 5, 6].map(di => {
+    const si = slots.indexOf(di);
+    if (si >= 0) return { di, s: PLAN[wi].s[si], k: `${wi}-${si}` };
+    const rest = wi !== 7 && di === 4 ? "쉬는 날 · 원하면 스트레칭 15분"
+      : wi === 7 && di === 5 ? "쉬는 날 · 대회 준비물 챙기기" : "쉬는 날 · 달리지 않아요";
+    return { di, rest, k: `${wi}-r${di}` };
+  });
+}
+
+const stepsHtml = steps => `<ol class="steps">${steps.map(([b, s]) =>
+  `<li class="${steps.length === 1 ? "single" : ""}"><b>${b}</b><span>${s}</span></li>`).join("")}</ol>`;
+const kmHtml = s => `${s.approx ? '<small>약</small>' : ""}${s.km}<small>km</small>`;
+
+let sel = null;
+
+function render() {
+  const t0 = today(), now = currentWeek();
+  if (sel === null) sel = Math.max(0, now);
+  const dd = Math.round((raceDate() - t0) / 86400000);
+  $("dday").textContent = dd > 0 ? `D-${dd}` : dd === 0 ? "D-DAY" : `D+${-dd}`;
+
+  // 진행 상황
+  let runs = 0, km = 0;
+  PLAN.forEach((w, wi) => w.s.forEach((s, si) => { if (state.done[`${wi}-${si}`]) { runs++; km += s.km; } }));
+  $("pRuns").textContent = `${runs} / ${TOTAL_RUNS}회`;
+  $("pRunsBar").style.width = (runs / TOTAL_RUNS * 100) + "%";
+  $("pKm").textContent = `${km} km`;
+  $("pKmBar").style.width = (km / TOTAL_KM * 100) + "%";
+
+  // 오늘
+  const di = Math.round((t0 - dateOf(0, 0)) / 86400000);
+  let html;
+  if (di < 0) {
+    const first = dateOf(0, 1);
+    html = `<div class="when">아직 시작 전이에요</div>
+      <div class="head"><h2>첫 달리기: ${fmtDate(first)} (${WD[first.getDay()]})</h2><div class="bigkm">${kmHtml(PLAN[0].s[0])}</div></div>
+      ${stepsHtml(PLAN[0].s[0].steps)}`;
+  } else if (di > 55) {
+    html = `<div class="when">플랜 끝</div><div class="head"><h2>10km 완주를 축하해요 🎉</h2></div>`;
+  } else {
+    const wi = Math.floor(di / 7), day = weekDays(wi)[di % 7], c = !!state.done[day.k];
+    const when = `오늘 · ${fmtDate(t0)} ${WD[t0.getDay()]}요일 · ${wi + 1}주차`;
+    html = day.s
+      ? `<div class="when">${when}</div>
+         <div class="head"><h2><span class="dot ${day.s.type}" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>${day.s.name}</h2><div class="bigkm">${kmHtml(day.s)}</div></div>
+         ${stepsHtml(day.s.steps)}
+         <button class="donebtn ${c ? "is-done" : ""}" data-k="${day.k}">${c ? "✅ 완료했어요 (취소하려면 누르기)" : "오늘 달리기 완료!"}</button>
+         <button class="golog" data-go="log">✍️ 실제로 달린 거리와 시간 기록하기</button>`
+      : `<div class="when">${when}</div>
+         <div class="head"><h2>오늘은 쉬는 날 😌</h2></div>
+         <p class="restmsg">${day.rest.replace("쉬는 날 · ", "")}. 쉬는 것도 훈련이에요.</p>
+         <button class="donebtn ${c ? "is-done" : ""}" data-k="${day.k}">${c ? "✅ 잘 쉬었어요" : "잘 쉬었어요"}</button>`;
+  }
+  $("today").innerHTML = html;
+
+  // 주차 탭
+  $("tabs").innerHTML = PLAN.map((w, wi) => {
+    const complete = w.s.every((_, si) => state.done[`${wi}-${si}`]);
+    return `<button data-w="${wi}" class="${wi === sel ? "sel" : ""} ${wi === now ? "cur" : ""}">${complete ? "✓ " : ""}${wi + 1}주${wi === now ? " · 이번 주" : ""}</button>`;
+  }).join("");
+
+  // 선택한 주
+  const w = PLAN[sel], wkm = w.s.reduce((m, s) => m + s.km, 0);
+  const from = dateOf(sel, 0), to = dateOf(sel, 6);
+  $("week").innerHTML = `
+    <div class="week-title"><h2>${sel + 1}주차 · ${w.focus}</h2>
+      <span class="tot">${fmtDate(from)}~${fmtDate(to)} · 3일 달리기 · 총 <b>${wkm}km</b></span></div>
+    ${weekDays(sel).map(day => {
+      const date = dateOf(sel, day.di), c = !!state.done[day.k];
+      const isToday = +date === +t0, missed = !c && day.s && date < t0;
+      const logs = state.logs.filter(l => l.date === iso(date));
+      const logLine = logs.length
+        ? `<div class="logline">✍️ 실제로 달림: ${logs.map(l => `${l.km}km · ${fmtPace(l.sec / l.km)}${l.feel ? " " + l.feel : ""}`).join(", ")}</div>` : "";
+      const body = day.s
+        ? `<div class="name"><span class="dot ${day.s.type}"></span>${day.s.name}</div>${stepsHtml(day.s.steps)}${logLine}`
+        : `<div class="name">${day.rest}</div>${logLine}`;
+      return `<label class="day ${day.s ? "run" : "rest"} ${c ? "checked" : ""} ${isToday ? "today" : ""} ${missed ? "missed" : ""}">
+        <div class="date"><b>${fmtDate(date)}</b>${WD[date.getDay()]}${isToday ? " · 오늘" : ""}</div>
+        <div class="body">${body}</div>
+        <div class="km">${day.s ? kmHtml(day.s) : ""}</div>
+        <input type="checkbox" data-k="${day.k}" ${c ? "checked" : ""} aria-label="${fmtDate(date)} 완료">
+      </label>`;
+    }).join("")}`;
+}
+
+function toggle(k, on) { if (on) state.done[k] = true; else delete state.done[k]; save(); render(); }
+$("week").addEventListener("change", e => { if (e.target.dataset.k) toggle(e.target.dataset.k, e.target.checked); });
+$("today").addEventListener("click", e => { const k = e.target.dataset && e.target.dataset.k; if (k) toggle(k, !state.done[k]); });
+$("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { sel = +b.dataset.w; render(); } });
+$("raceDate").value = state.race;
+$("raceDate").addEventListener("change", e => { if (e.target.value) { state.race = e.target.value; sel = null; save(); render(); } });
+$("reset").addEventListener("click", e => {
+  const b = e.target;
+  if (b.dataset.armed) { state.done = {}; save(); render(); b.textContent = "체크 기록 모두 지우기"; delete b.dataset.armed; }
+  else { b.dataset.armed = 1; b.textContent = "정말 지울까요? 한 번 더 누르세요"; setTimeout(() => { b.textContent = "체크 기록 모두 지우기"; delete b.dataset.armed; }, 3000); }
+});
+
+// 9월 러닝 기록 (러닝 앱 캡처)
+const SEPT_RUNS = [
+  { d: "9/27", wd: "일", km: 6.04, pace: "7'49\"", time: "47:15", best: true },
+  { d: "9/26", wd: "토", km: 6.04, pace: "7'57\"", time: "48:02" },
+  { d: "9/21", wd: "월", km: 5.43, pace: "8'27\"", time: "45:56" },
+  { d: "9/20", wd: "일", km: 0.03, pace: "14'16\"", time: "0:33", skip: true },
+  { d: "9/19", wd: "토", km: 5.37, pace: "8'03\"", time: "43:18" },
+  { d: "9/15", wd: "화", km: 2.70, pace: "7'58\"", time: "21:34" },
+  { d: "9/6", wd: "일", km: 4.95, pace: "7'57\"", time: "39:28" }
+];
+const SEPT_WEEKS = [
+  { label: "9/1~6", km: 4.95, n: 1 },
+  { label: "9/7~13", km: 0, n: 0 },
+  { label: "9/14~20", km: 8.07, n: 2 },
+  { label: "9/21~27", km: 17.51, n: 3 },
+  { label: "9/28~10/4", km: 17.08, n: 4, est: true },
+  { label: "10/5~", km: 6.00, n: 1 }
+];
+function renderSept() {
+  const max = 20;
+  $("septWeeks").innerHTML = SEPT_WEEKS.map(w => `
+    <div class="wk"><span>${w.label}</span>
+      <div class="track"><i class="${w.est ? "est" : ""}" style="width:${w.km / max * 100}%"></i></div>
+      <span class="val"><b>${w.km.toFixed(1)}km</b> · ${w.n}회${w.est ? " (추정)" : ""}</span></div>`).join("");
+  $("septRuns").innerHTML = SEPT_RUNS.map(r => `
+    <tr class="${r.skip ? "skip" : ""}"><td>${r.d} (${r.wd})</td><td class="r">${r.km.toFixed(2)}km</td>
+      <td class="r">${r.pace}${r.best ? '<span class="best">최고</span>' : ""}</td><td class="r">${r.time}</td></tr>`).join("") +
+    `<tr><td style="color:var(--muted)">9/28~30 (화면 밖)</td><td class="r" style="color:var(--muted)">2회 · 10.10km</td><td class="r" style="color:var(--muted)">–</td><td class="r" style="color:var(--muted)">–</td></tr>`;
+}
+
+// 달린 날 기록
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fmtPace = s => `${Math.floor(s / 60)}'${String(Math.round(s % 60)).padStart(2, "0")}"`;
+const fmtTime = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? `${h}시간 ` : "") + `${m}분 ${String(x).padStart(2, "0")}초`; };
+let feel = "";
+
+function formSec() { return (Number($("lMin").value) || 0) * 60 + (Number($("lSec").value) || 0); }
+function updatePace() {
+  const km = Number($("lKm").value), sec = formSec();
+  $("lPace").textContent = km > 0 && sec > 0 ? `${fmtPace(sec / km)} /km` : "–";
+}
+// 그 날짜가 플랜의 달리는 날이면 체크도 같이 해 줌
+function planKeyFor(dateStr) {
+  for (let wi = 0; wi < 8; wi++) for (const day of weekDays(wi))
+    if (day.s && iso(dateOf(wi, day.di)) === dateStr) return day.k;
+  return null;
+}
+function renderLogs() {
+  const logs = [...state.logs].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  if (!logs.length) { $("logList").innerHTML = `<p class="logsum">아직 기록이 없어요. 달린 날 위에서 적어 주세요.</p>`; return; }
+  const km = logs.reduce((n, l) => n + l.km, 0), sec = logs.reduce((n, l) => n + l.sec, 0);
+  $("logList").innerHTML = `<p class="logsum">지금까지 <b>${logs.length}회</b> · 총 <b>${km.toFixed(2)}km</b> · 평균 속도 <b>${fmtPace(sec / km)}/km</b></p>` +
+    logs.map(l => {
+      const d = new Date(l.date + "T00:00:00");
+      return `<div class="logitem">
+        <div class="top">${fmtDate(d)} (${WD[d.getDay()]}) · ${l.km}km · ${fmtPace(l.sec / l.km)}/km ${l.feel}<span>${fmtTime(l.sec)}</span></div>
+        <div class="memo">${l.memo ? l.memo.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) : ""}</div>
+        <button class="del" data-id="${l.id}">삭제</button>
+      </div>`;
+    }).join("");
+}
+function msg(t, err) { $("lMsg").textContent = t; $("lMsg").className = "logmsg" + (err ? " err" : ""); }
+
+$("lDate").value = iso(today());
+["lKm", "lMin", "lSec"].forEach(id => $(id).addEventListener("input", updatePace));
+$("lFeel").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  feel = feel === b.dataset.v ? "" : b.dataset.v;
+  [...$("lFeel").children].forEach(x => x.classList.toggle("sel", x.dataset.v === feel));
+});
+$("lSave").addEventListener("click", () => {
+  const date = $("lDate").value, km = Math.round(Number($("lKm").value) * 100) / 100, sec = formSec();
+  if (!date) return msg("날짜를 골라 주세요.", true);
+  if (!(km > 0)) return msg("달린 거리를 적어 주세요.", true);
+  if (!(sec > 0)) return msg("걸린 시간을 적어 주세요.", true);
+  state.logs.push({ id: Date.now(), date, km, sec, feel, memo: $("lMemo").value.trim() });
+  const k = planKeyFor(date);
+  if (k) state.done[k] = true;
+  save();
+  ["lKm", "lMin", "lSec", "lMemo"].forEach(id => $(id).value = "");
+  feel = ""; [...$("lFeel").children].forEach(x => x.classList.remove("sel"));
+  updatePace();
+  msg(`저장했어요! ${km}km · ${fmtPace(sec / km)}/km` + (k ? " · 플랜에도 완료 체크했어요" : ""));
+  render(); renderLogs();
+});
+$("logList").addEventListener("click", e => {
+  const b = e.target.closest(".del"); if (!b) return;
+  if (!b.classList.contains("armed")) {
+    b.classList.add("armed"); b.textContent = "정말 삭제?";
+    setTimeout(() => { b.classList.remove("armed"); b.textContent = "삭제"; }, 3000);
+    return;
+  }
+  state.logs = state.logs.filter(l => l.id !== +b.dataset.id);
+  save(); render(); renderLogs(); msg("");
+});
+
+// 10월 러닝 앱 기록을 처음 한 번만 기록 목록에 넣음 (지워도 다시 생기지 않음)
+const OCT_LOGS = [
+  { id: 1001, date: "2026-10-01", km: 5.09, sec: 36 * 60 + 36, feel: "", memo: "5km 최고 기록 (러닝 앱에서 가져옴)" },
+  { id: 1004, date: "2026-10-04", km: 1.89, sec: 15 * 60 + 41, feel: "", memo: "러닝 앱에서 가져옴" },
+  { id: 1005, date: "2026-10-05", km: 6.00, sec: 44 * 60 + 12, feel: "", memo: "러닝 앱에서 가져옴" }
+];
+if (!state.seededOct) {
+  OCT_LOGS.forEach(l => {
+    if (state.logs.some(x => x.id === l.id)) return;
+    state.logs.push({ ...l });
+    const k = planKeyFor(l.date);
+    if (k) state.done[k] = true;
+  });
+  state.seededOct = true;
+  save();
+}
+
+// 화면 탭 (마지막으로 본 탭을 기억)
+const PANES = ["today", "plan", "log", "stats", "help"];
+function showPane(p) {
+  if (!PANES.includes(p)) p = "today";
+  PANES.forEach(x => {
+    $("pane-" + x).hidden = x !== p;
+    $("tab-" + x).setAttribute("aria-selected", x === p ? "true" : "false");
+  });
+  try { localStorage.setItem("run10k-tab", p); } catch (e) {}
+  window.scrollTo(0, 0);
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) showPane(b.dataset.go); });
+let lastTab = "today";
+try { lastTab = localStorage.getItem("run10k-tab") || "today"; } catch (e) {}
+showPane(lastTab);
+
+renderSept();
+render();
+renderLogs();
+</script>
+</body>
+</html>
